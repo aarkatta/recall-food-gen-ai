@@ -1,5 +1,5 @@
 
-## Live Demo: [https://www.recalls.food](https://www.recalls.food){:target="_blank"}
+## Live Demo: [https://www.recalls.food ↗](https://www.recalls.food)
 
 # Recall Alert System
 
