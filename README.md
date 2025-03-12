@@ -1,5 +1,5 @@
 
-## Live Demo: <a href="https://www.recalls.food" target="_blank">https://www.recalls.food</a>
+## Live Demo: [https://www.recalls.food ↗](https://www.recalls.food)
 
 # Recall Alert System
 
