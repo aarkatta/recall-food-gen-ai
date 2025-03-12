@@ -1,12 +1,12 @@
 [submodule "recall-ui"]
 	path = recall-ui
-	url = ../recall-ui
+	url = https://github.com/aarkatta/recall-ui.git
 	branch = main
 [submodule "recall-api"]
 	path = recall-api
-	url = ../recall-api
+	url = https://github.com/aarkatta/recall-api.git
 	branch = main
 [submodule "recall-etl"]
 	path = recall-etl
-	url = ../recall-etl
+	url = https://github.com/aarkatta/recall-etl.git
 	branch = main
