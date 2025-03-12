@@ -1,3 +1,5 @@
+## Live Demo: https://www.recalls.food
+
 # Recall Alert System
 
 The Recall Alert System is a web application designed to provide users with real-time recall notifications for food products based on their location (ZIP code). The system integrates data from openFDA and enhances it with Azure AI services to deliver accurate and relevant recall alerts.
@@ -37,4 +39,3 @@ The Recall Alert System is a web application designed to provide users with real
   - Verifies the OpenFDA recall status; if changed, generates a new summary.
   - Displays the latest, up-to-date recall summary.
 
-  Live: https://www.recalls.food
