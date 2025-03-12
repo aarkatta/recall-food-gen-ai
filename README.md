@@ -1,4 +1,5 @@
-## <a href="https://www.recalls.food" target="_new" rel="noopener noreferrer">Live Demo</a>
+
+## Live Demo: <a href="https://www.recalls.food" target="_blank">https://www.recalls.food</a>
 
 # Recall Alert System
 
