@@ -1,9 +1,9 @@
 [submodule "recall-ui"]
 	path = recall-ui
-	url = https://github.com/aarkatta/recall-ui.git
+	url = ../recall-ui
 [submodule "recall-api"]
 	path = recall-api
-	url = https://github.com/aarkatta/recall-api.git
+	url = ../recall-api
 [submodule "recall-etl"]
 	path = recall-etl
-	url = https://github.com/aarkatta/recall-etl.git
+	url = ../recall-etl
