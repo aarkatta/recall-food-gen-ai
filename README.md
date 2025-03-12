@@ -1,4 +1,4 @@
-## Live Demo: https://www.recalls.food
+## Live Demo:  <a href="https://www.recalls.food" target="_blank" rel="noopener noreferrer">https://www.recalls.food</a>
 
 # Recall Alert System
 
@@ -38,4 +38,6 @@ The Recall Alert System is a web application designed to provide users with real
   - Fetches full recall details from Redis.
   - Verifies the OpenFDA recall status; if changed, generates a new summary.
   - Displays the latest, up-to-date recall summary.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
