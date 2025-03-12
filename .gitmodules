@@ -1,9 +1,12 @@
 [submodule "recall-ui"]
 	path = recall-ui
 	url = ../recall-ui
+	branch = main
 [submodule "recall-api"]
 	path = recall-api
 	url = ../recall-api
+	branch = main
 [submodule "recall-etl"]
 	path = recall-etl
 	url = ../recall-etl
+	branch = main
