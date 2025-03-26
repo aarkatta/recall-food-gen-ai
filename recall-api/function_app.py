@@ -53,8 +53,7 @@ ZIPCODE_LOOKUP, CITY_LOOKUP = load_zipcode_data()
 @app.route(route="api/recent_recalls", auth_level=func.AuthLevel.FUNCTION)
 def recent_recalls(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Recent recalls from AI Search Service.')
-    headers = {
-        "Access-Control-Allow-Origin": "https://recalls.food",
+    headers = {        
         "Access-Control-Allow-Methods": "GET, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
     }
@@ -87,8 +86,7 @@ def get_recall_by_id(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Processing recall request by ID')
     recall_id = req.route_params.get('recall_id')
     
-    headers = {
-            "Access-Control-Allow-Origin": "https://foodrecall-fecwdjbya4fsfxfp.eastus2-01.azurewebsites.net",
+    headers = {            
             "Access-Control-Allow-Methods": "GET, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Authorization",
         }
@@ -143,8 +141,7 @@ def get_recall_by_id(req: func.HttpRequest) -> func.HttpResponse:
 @app.route(route="api/recall_details", auth_level=func.AuthLevel.FUNCTION)
 def recall_details(req: func.HttpRequest) -> func.HttpResponse:
     
-    headers = {
-        "Access-Control-Allow-Origin": "https://foodrecall-fecwdjbya4fsfxfp.eastus2-01.azurewebsites.net",
+    headers = {        
         "Access-Control-Allow-Methods": "GET, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
     }
