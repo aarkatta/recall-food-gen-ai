@@ -31,7 +31,6 @@ function SearchResults() {
         }
 
         const data = await response.json()
-        console.log('Search results:', data)
         setRecalls(data || [])
       } catch (err) {
         setError(err.message)

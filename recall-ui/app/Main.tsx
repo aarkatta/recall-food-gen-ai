@@ -23,7 +23,7 @@ export default function Main({ recalls, showAll = false }) {
           {displayedRecalls.map((recall) => {
             const {
               recall_number,
-              recall_initiation_date,
+              report_date,
               product_description,
               classification,
               reason_for_recall,
@@ -33,10 +33,12 @@ export default function Main({ recalls, showAll = false }) {
                 <article>
                   <div className="space-y-2 xl:grid xl:grid-cols-4 xl:items-baseline xl:space-y-0">
                     <dl>
-                      <dt className="sr-only">Initiated on</dt>
+                      <div className="prose max-w-none text-gray-500 dark:text-gray-400">
+                        <h4 className="font-semibold">Report Date</h4>
+                      </div>
                       <dd className="text-base leading-6 font-medium text-gray-500 dark:text-gray-400">
-                        <time dateTime={recall_initiation_date}>
-                          {formatDate(recall_initiation_date, siteMetadata.locale)}
+                        <time dateTime={report_date}>
+                          {formatDate(report_date, siteMetadata.locale)}
                         </time>
                       </dd>
                     </dl>

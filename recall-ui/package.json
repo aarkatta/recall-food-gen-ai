@@ -1,7 +1,6 @@
 {
   "name": "recall-ui",
   "version": "2.3.0",
-  "license": "MIT",
   "private": true,
   "scripts": {
     "start": "next start -p $PORT",

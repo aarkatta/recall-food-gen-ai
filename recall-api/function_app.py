@@ -1,13 +1,12 @@
 import os
-import datetime
 import json
 import logging
-import redis
 import re
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 import azure.functions as func
 from azure.storage.blob import BlobServiceClient
+from azure.data.tables import TableServiceClient, TableClient
 from typing import Dict, Any
 
 app = func.FunctionApp()
@@ -16,34 +15,17 @@ AZURE_SEARCH_SERVICE_NAME = os.getenv("AZURE_SEARCH_SERVICE_NAME", "your-search-
 AZURE_SEARCH_API_KEY = os.getenv("AZURE_SEARCH_API_KEY", "your-api-key")
 AZURE_SEARCH_INDEX = os.getenv("AZURE_SEARCH_INDEX", "food_recall")
 AZURE_SEARCH_ENDPOINT = f"https://{AZURE_SEARCH_SERVICE_NAME}.search.windows.net"
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
-REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "admin")
-REDIS_CACHE_TTL = int(os.getenv("REDIS_CACHE_TTL", 3600))  # Cache TTL in seconds (default 1 hour)
 AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 ZIPCODE_BLOB_CONTAINER = os.getenv("ZIPCODE_BLOB_CONTAINER")
 ZIPCODE_BLOB_NAME = os.getenv("ZIPCODE_BLOB_NAME")
-# Initialize Redis client
+TABLE_NAME = "recallsummaries" 
 
-def create_redis_client() -> redis.Redis:
-    """Create and return a Redis client connection."""
-    return redis.Redis(
-        host='localhost',
-        port=6379,
-        password='admin',
-        decode_responses=True  # Return strings instead of bytes
-    )
 
-def azure_redis() -> redis.Redis:
-    return redis.Redis(
-        host=REDIS_HOST,
-        port=6380,
-        password=REDIS_PASSWORD,
-        ssl=True,
-        ssl_cert_reqs=None,  # This disables certificate verification
-        socket_timeout=5,
-        socket_connect_timeout=5
-    )
+def create_table_client() -> TableClient:
+    """Create and return a TableClient for recall summaries."""
+    table_service = TableServiceClient.from_connection_string(conn_str=AZURE_STORAGE_CONNECTION_STRING)
+    table_client = table_service.get_table_client(table_name=TABLE_NAME)
+    return table_client
 
 def load_zipcode_data():
     blob_service_client = BlobServiceClient.from_connection_string(AZURE_STORAGE_CONNECTION_STRING)
@@ -72,12 +54,11 @@ ZIPCODE_LOOKUP, CITY_LOOKUP = load_zipcode_data()
 def recent_recalls(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Recent recalls from AI Search Service.')
     headers = {
-        "Access-Control-Allow-Origin": "https://foodrecall-fecwdjbya4fsfxfp.eastus2-01.azurewebsites.net",
+        "Access-Control-Allow-Origin": "https://recalls.food",
         "Access-Control-Allow-Methods": "GET, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
     }
     try:        
-        
         results = query_azure_search()
         recall_list = []
         for result in results:
@@ -118,8 +99,7 @@ def get_recall_by_id(req: func.HttpRequest) -> func.HttpResponse:
             headers=headers
         )
         
-    try:
-        
+    try:        
         if not recall_id:
             return func.HttpResponse(
                     json.dumps({"error": "Recall ID is required"}),
@@ -128,15 +108,16 @@ def get_recall_by_id(req: func.HttpRequest) -> func.HttpResponse:
                     headers=headers
                 )
             
-            # Initialize Redis client
-        redis_client = azure_redis()        
-        cache_key = f"recall:summary:{recall_id}"
-        cached_data = redis_client.get(cache_key)
-        if cached_data:
-            logging.info(f"Cache hit for recall {recall_id}")
-            ai_response = cached_data.decode('utf-8')
-        else:
-            logging.info(f"Cache miss for recall {recall_id}")
+        table_client = create_table_client()
+        partition_key = "recall"  # Based on the screenshot
+        row_key = recall_id
+        
+        try:
+            # Get the entity from the table
+            entity = table_client.get_entity(partition_key=partition_key, row_key=row_key)
+            ai_response = entity.get("summary", "No summary available for this recall")
+        except Exception as table_error:
+            logging.error(f"Error retrieving recall from table storage: {table_error}")
             ai_response = "No summary available for this recall"
             
         return func.HttpResponse(
@@ -147,12 +128,12 @@ def get_recall_by_id(req: func.HttpRequest) -> func.HttpResponse:
             status_code=200,
             mimetype="application/json",
             headers=headers
-            )         
-           
+            ) 
                 
     except Exception as e:
         logging.error(f"Error retrieving recall: {e}")
-        return func.HttpResponse(
+        
+    return func.HttpResponse(
                 json.dumps({"error": str(e)}),
                 status_code=500,
                 mimetype="application/json",
@@ -161,7 +142,7 @@ def get_recall_by_id(req: func.HttpRequest) -> func.HttpResponse:
     
 @app.route(route="api/recall_details", auth_level=func.AuthLevel.FUNCTION)
 def recall_details(req: func.HttpRequest) -> func.HttpResponse:
-    redis_client = azure_redis()
+    
     headers = {
         "Access-Control-Allow-Origin": "https://foodrecall-fecwdjbya4fsfxfp.eastus2-01.azurewebsites.net",
         "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -178,18 +159,20 @@ def recall_details(req: func.HttpRequest) -> func.HttpResponse:
         else:
             recall_number = req_body.get('recall_number')
 
-    if recall_number:        
-        key = f"recall:summary:{recall_number}"   
-        # Try to get the recall details from Redis cache first
-        cached_data = redis_client.get(key)
-        if cached_data:
-            logging.info(f"Cache hit for recall {recall_number}")
-            ai_response = cached_data.decode('utf-8')
-        else:
-            logging.info(f"Cache miss for recall {recall_number}")
+    if recall_number:
+        # Initialize Table client
+        table_client = create_table_client()
+        partition_key = "recall"  # Based on the screenshot
+        row_key = recall_number
+        
+        try:
+            # Get the entity from the table
+            entity = table_client.get_entity(partition_key=partition_key, row_key=row_key)
+            ai_response = entity.get("summary", "No summary available for this recall")
+        except Exception as e:
+            logging.error(f"Error retrieving recall from table storage: {e}")
             ai_response = "No summary available for this recall"
         
-        ## return {"recall_number": recall_number, "summary": latest_recall}
         return func.HttpResponse(
             json.dumps({
                 "summary": ai_response,                 
@@ -241,16 +224,16 @@ def query_azure_search(search_text=""):
             search_results = search_client.search(
                 search_text=state_values, 
                 search_fields=["distribution_pattern"],                      
-                select="recall_number,reason_for_recall,status,classification,recall_initiation_date,recall_severity,product_description",
-                order_by="recall_initiation_date desc",
+                select="recall_number,reason_for_recall,status,classification,report_date,recall_severity,product_description",
+                order_by="report_date desc",
                 top=200
             )
         elif search_info["type"] == "free_text":
             search_results = search_client.search(
                 search_text=search_info["value"],
-                search_fields=["product_description", "reason_for_recall"],
-                select="recall_number,reason_for_recall,status,classification,recall_initiation_date,recall_severity,product_description",
-                order_by="recall_initiation_date desc",
+                search_fields=["product_description", "reason_for_recall", "classification", "recalling_firm"],
+                select="recall_number,reason_for_recall,status,classification,report_date,recall_severity,product_description",
+                order_by="report_date desc",
                 top=200
             )       
             

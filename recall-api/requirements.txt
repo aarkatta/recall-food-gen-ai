@@ -6,5 +6,5 @@ azure-functions
 azure-core
 requests
 azure-search-documents
-redis
 azure-storage-blob
+azure-data-tables
